@@ -1,14 +1,14 @@
 # dev_task
 dev_task是一款基于django-celery-beat调度执行的任务管理平台，平台基于celery4.1.1开发，实现了类似crontab定时执行任务的功能。(后期将作为运维平台dev_system的任务编排组件)
 ## 环境：
-建议大家在centos7.0系统安装此项目
-Python2.7版本以上
-项目部署目录 /opt
-关闭防火墙
-setenforce 0
-service iptables stop
-安装mysql5.6,rabbitmq,并且启动服务
-安装supervisor，必须是3.0以上的版本，centos6.5yum安装默认是2.+的版本，这里需要手动安装。
+建议大家在centos7.0系统安装此项目<br>
+Python2.7版本以上<br>
+项目部署目录 /opt<br>
+关闭防火墙<br>
+setenforce 0<br>
+service iptables stop<br>
+安装mysql5.6,rabbitmq,并且启动服务<br>
+安装supervisor，必须是3.0以上的版本，centos6.5yum安装默认是2.+的版本，这里需要手动安装。<br>
 ## 依赖
 ```
 yum install -y epel-release
@@ -27,7 +27,8 @@ git clone
 ```
 
 ## server端安装
-### 关于rabbitmq日志文件等信息的配置，大家可以查官网，自行配置。
+
+关于rabbitmq日志文件等信息的配置，大家可以查官网，自行配置。
 ###创建用户，添加user_tags，创建vhost，用户授权
 ```
 rabbitmqctl add_user rabbitmqadmin 1234qwer
