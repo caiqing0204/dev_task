@@ -28,7 +28,7 @@ git clone https://github.com/caiqing0204/dev_task.git
 
 ## server端安装
 
-关于rabbitmq日志文件等信息的配置，大家可以查官网，自行配置。
+关于rabbitmq日志文件等信息的配置，大家可以查官网，自行配置<br>
 ###创建用户，添加user_tags，创建vhost，用户授权
 ```
 rabbitmqctl add_user rabbitmqadmin 1234qwer
