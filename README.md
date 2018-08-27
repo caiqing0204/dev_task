@@ -1,7 +1,8 @@
 # dev_task
-dev_task是一款基于django-celery调度执行的任务管理平台，目前平台基于celery3.1.25开发，后面一款基于4.0版本的开发，可供大家使用
+dev_task是一款基于django-celery-beat调度执行的任务管理平台，平台基于celery4.1.1开发，实现了类似crontab定时执行任务的功能。(后期将作为运维平台dev_system的任务编排组件)
 ## 环境：
-全新Centos6.5系统，Python2.7版本以上
+建议大家在centos7.0系统安装此项目
+Python2.7版本以上
 项目部署目录 /opt
 关闭防火墙
 setenforce 0
@@ -17,8 +18,8 @@ yum install -y python python-dev python-devel   python-pip  gcc  msgpack-python 
 ## server端和client节点都需要安装的模块，并且git clone代码到server和client上
 ```
 pip install django==1.11.9
-pip install django-celery==3.2.2
-pip install celery==3.1.25
+pip install django-celery-beat==1.0.1
+pip install celery==4.1.1
 pip isntall MySQL-python==1.2.5
 pip install SQLAlchemy==1.2.10
 pip install msgpack==0.5.6
@@ -91,4 +92,5 @@ supervisord -c /etc/supervisord.conf
 ### server端和client端一样
 升级完python版本以后，需要重新安装一下pip，下载pip的tar包，解压安装。重新制定软连接，就可以使用了。
 我这里是手动安装supervisord 3版本的，安装supervisord之前，需要安装setuptools，centos6.5 yum安装supervisord，版本是2.1,
+有问题，欢迎随时提交issues！
 
