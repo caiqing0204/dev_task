@@ -23,7 +23,7 @@ pip install celery==4.1.1
 pip isntall MySQL-python==1.2.5
 pip install SQLAlchemy==1.2.10
 pip install msgpack==0.5.6
-git clone
+git clone https://github.com/caiqing0204/dev_task.git
 ```
 
 ## server端安装
