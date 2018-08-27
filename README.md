@@ -68,10 +68,9 @@ chmod 777 /opt/dev_task/static/ -R
 cp /opt/dev_task/nginx.conf  /usr/local/nginx/conf/
 ```
 ### 登录
-http://ip:port
-admin
+http://ip:port<br>
+admin<br>
 password!23456
-
 
 ## client端安装
 ### 配置dev_task.conf
