@@ -28,7 +28,7 @@ git clone https://github.com/caiqing0204/dev_task.git
 
 ## server端安装
 关于rabbitmq日志文件等信息的配置，大家可以查官网，自行配置<br>
-创建用户，添加user_tags，创建vhost，用户授权
+#####创建用户，添加user_tags，创建vhost，用户授权
 ```
 rabbitmqctl add_user rabbitmqadmin 1234qwer
 rabbitmqctl set_user_tags rabbitmqadmin administrator
@@ -87,7 +87,6 @@ python setup.py install
 cp /opt/dev_task/client_supervisord.conf /etc/supervisord.conf
 supervisord -c /etc/supervisord.conf
 ```
-
 ## 注意
 ### server端和client端一样
 升级完python版本以后，需要重新安装一下pip，下载pip的tar包，解压安装。重新制定软连接，就可以使用了。
