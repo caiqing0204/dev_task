@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% load mytags %}
+{% block job_list %}
+    active
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+        <!-- Horizontal Form -->
+            <form action="{% url 'job_del' %}" method="post">
+                {% csrf_token %}
+                <div class="box box-info">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">任务列表</h3>
+                    </div>
+                    <div class="box-body">
+                        <div style="padding-left: 0;bottom: 5px;" class="col-sm-12">
+                            <div class="btn-group">
+                                <button id="btn_add" type="button" class="btn btn-default" onclick="window.location.href='{% url 'job_add' %}'">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+                                </button>
+                            </div>
+                        </div>
+                        <table id="job_table" class="table table-bordered table-striped">
+                          <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" onclick="checkAll(this, 'item1');" />
+                                </th>
+                                <th>主机名称</th>
+                                <th>主机ip</th>
+                                <th>任务名称</th>
+                                <th>任务指令</th>
+                                <th>Crontab</th>
+                                <th>interval</th>
+                                <th>上次运行</th>
+                                <th>运行次数</th>
+                                <th>上次修改</th>
+                                <th>过期时间</th>
+                                <th>操作</th>
+                            </tr>
+                          </thead>
+                            <tbody>
+                                {% for job in jobs_info %}
+                                <tr class="even geade">
+                                    <td><input type="checkbox" id="u_id" class="item1" value="{{ job.id }}" name="job_check" /></td>
+                                    <td>{{ job.nice_name }}</td>
+                                    <td>{{ job.host }}</td>
+                                    <td><a href="#"><li style="list-style-type:none"> {{ job.name }}</li></a></td>
+                                    <td>{{ job.kwargs }}</td>
+                                    <td>{% if job.crontab_id %}{{ job.crontab_id|crontab2str }}{% endif %}</td>
+                                    <td>{% if job.interval_id %}{{ job.interval_id|intervals2str }}{% endif %}</td>
+                                    <td>{{ job.last_run_at|date:"Y-m-d H:i:s" }}</td>
+                                    <td>{{ job.total_run_count }}</td>
+                                    <td>{{ job.date_changed|date:"Y-m-d H:i:s" }}</td>
+                                    <td>{{ job.expires|date:"Y-m-d H:i:s" }}</td>
+                                    <td class="text-center">
+                                        <a class="btn btn-sm btn-info" onclick="return job_edit({{ job.id }})">编辑</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        <div class="btn-group">
+						    <button class="btn btn-danger" style="width: 60pt;font-size: medium" onclick="return checkSubmit()"><b>删除</b></button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <input id="handle_status" value="" hidden="hidden">
+{% endblock %}
+{% block scripts-files %}
+<script>
+function checkAll(sender, checkClass) {
+    var checkItems = document.getElementsByTagName('input');
+    for (var i = 0; i < checkItems.length; i++) {
+        var checkItem = checkItems[i];
+        if (checkItem.type === 'checkbox' && checkItem.className === 'item1') {
+            checkItem.checked = sender.checked;
+        }
+    }
+}
+</script>
+<script>
+  $(function () {
+    $('#job_table').DataTable({
+      "paging": true,
+      "lengthChange": true,
+      "searching": true,
+      "ordering": false,
+      "info": true,
+      "autoWidth": true
+    });
+  });
+</script>
+<script>
+function checkSubmit() {
+    if (!confirm("确定删除？")) {
+        window.event.returnValue = false;
+    }
+}
+</script>
+<script>
+
+function job_edit(n){
+    layer.open({
+    type: 2,
+    title: ['修改任务信息','background-color:#408EBA;color:#FFFFFF;'],
+    closeBtn: 1,
+    area: ['700px', '550px'],
+    //shade: [0.8,'#393D49'],
+    shadeClose: true, //点击遮罩关闭
+    content: ['/task/job/edit/' + n],
+    end:function(){
+            var handle_status = $("#handle_status").val();
+            if ( handle_status == '1' ) {
+                layer.msg('保存成功！',{
+                    icon: 1,
+                    time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                },function(){
+                    history.go(0);
+                });
+            } else if ( handle_status == '2' ) {
+                layer.msg('修改失败！',{
+                    icon: 2,
+                    time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                },function(){
+                    history.go(0);
+                });
+            }
+        }
+  });
+}
+</script>
+{% endblock %}

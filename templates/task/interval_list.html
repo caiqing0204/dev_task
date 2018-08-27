@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block interval_list %}
+    active
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+        <!-- Horizontal Form -->
+            <form action="{% url 'job_interval_del' %}" method="post">
+                {% csrf_token %}
+                <div class="box box-info">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">interval列表</h3>
+                    </div>
+                    <div class="box-body">
+                        <div style="padding-left: 0;bottom: 5px;" class="col-sm-12">
+                            <div class="btn-group">
+                                <button id="btn_add" type="button" class="btn btn-default" onclick="window.location.href='{% url 'job_interval_add' %}'">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+                                </button>
+                            </div>
+                        </div>
+                        <table id="interval_table" class="table table-bordered table-striped">
+                          <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" onclick="checkAll(this, 'item1');" />
+                                </th>
+                                <th>间隔周期</th>
+                                <th>时间单位</th>
+                                <th>操作</th>
+                            </tr>
+                          </thead>
+                            <tbody>
+                            {% for interval in interval_info %}
+                                <tr class="even gradeA">
+                                    <td><input type="checkbox" id="u_id" class="item1" value="{{ interval.id }}" name="interval_check" /></td>
+                                    <td><a href="#"><li style="list-style-type:none"> {{ interval.every }}</li></a></td>
+                                    <td>{{ interval.period }}</td>
+                                    <td class="text-center">
+                                        <a class="btn btn-sm btn-info" onclick="return interval_edit({{ interval.id }})">编辑</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <div class="btn-group">
+						    <button class="btn btn-danger" style="width: 60pt;font-size: medium" onclick="return checkSubmit()"><b>删除</b></button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <input id="handle_status" value="" hidden="hidden">
+{% endblock %}
+{% block scripts-files %}
+<script>
+function checkAll(sender, checkClass) {
+    var checkItems = document.getElementsByTagName('input');
+    for (var i = 0; i < checkItems.length; i++) {
+        var checkItem = checkItems[i];
+        if (checkItem.type === 'checkbox' && checkItem.className === 'item1') {
+            checkItem.checked = sender.checked;
+        }
+    }
+}
+</script>
+<script>
+  $(function () {
+    $('#interval_table').DataTable({
+      "paging": true,
+      "lengthChange": true,
+      "searching": true,
+      "ordering": false,
+      "info": true,
+      "autoWidth": true
+    });
+  });
+</script>
+<script>
+function checkSubmit() {
+    if (!confirm("确定删除？")) {
+        window.event.returnValue = false;
+    }
+}
+</script>
+<script>
+function interval_edit(n){
+    layer.open({
+    type: 2,
+    title: ['修改interval信息','background-color:#408EBA;color:#FFFFFF;'],
+    closeBtn: 1,
+    area: ['700px', '550px'],
+    //shade: [0.8,'#393D49'],
+    shadeClose: true, //点击遮罩关闭
+    content: ['/task/job/interval/edit/' + n],
+    end:function(){
+            var handle_status = $("#handle_status").val();
+            if ( handle_status == '1' ) {
+                layer.msg('保存成功！',{
+                    icon: 1,
+                    time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                },function(){
+                    history.go(0);
+                });
+            } else if ( handle_status == '2' ) {
+                layer.msg('修改失败！',{
+                    icon: 2,
+                    time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                },function(){
+                    history.go(0);
+                });
+            }
+        }
+  });
+}
+</script>
+{% endblock %}

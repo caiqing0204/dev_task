@@ -1,0 +1,190 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/AdminLTE.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'layer/layer.js' %}"></script>
+    <script src="{% static 'js/select2.full.min.js' %}"></script>
+    <script>
+    $(function () {
+        $('.select2').select2();
+    })
+    </script>
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+    <section class="content">
+        <div class="row">
+            <div class="col-md-12">
+                <form method="post" class="form-horizontal" action="">{% csrf_token %}
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_nice_name">主机名称:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="text" id="id_nice_name" name="nice_name" value="{{ job_info.nice_name }}" class="form-control" maxlength="200" required>
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_host">主机ip:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="text" id="id_host" name="host" value="{{ job_info.host }}" class="form-control" maxlength="200" required>
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_name">Task name:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="text" id="id_name" name="name" value="{{ job_info.name }}" class="form-control" maxlength="200" required>
+                                <span class="help-block m-b-none">Useful description</span>
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_task">Task (custom):</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="text" id="id_task" name="task" value="{{ job_info.task }}" class="form-control" maxlength="200">
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_interval">Interval:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <select id="id_interval" name="interval" class="form-control select2">
+                                        <option value="">---------</option>
+                                       {% for interval in interval_info %}
+                                             <option  value="{{ interval.id }}" {% ifequal job_info.interval_id interval.id %} selected {% endifequal %}>every&nbsp;&nbsp;&nbsp;&nbsp;{{ interval.every }}&nbsp;&nbsp;&nbsp;&nbsp;{{ interval.period }}</option>
+                                       {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_crontab">Crontab:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <select id="id_crontab" name="crontab" class="form-control select2">
+                                        <option value="">---------</option>
+                                       {% for crontab in crontab_info %}
+                                             <option  value="{{ crontab.id }}" {% ifequal job_info.crontab_id crontab.id %} selected {% endifequal %}>{{ crontab.minute }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ crontab.hour }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ crontab.day_of_month }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ crontab.month_of_year }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ crontab.day_of_week }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(m/h/dM/MY/d)</option>
+                                       {% endfor %}
+                                </select>
+                            <span class="help-block m-b-none">Use one of interval/crontab</span>
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_args">Arguments:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="text" id="id_args" name="args" value="{{ job_info.args }}" class="form-control" maxlength="200">
+                                <span class="help-block m-b-none">JSON encoded positional arguments</span>
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_kwargs">任务指令:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="text" id="id_kwargs" name="kwargs" value="{{ job_info.kwargs }}" placeholder="{&quot;host&quot;:&quot;your_hostname&quot;,&quot;name&quot;:&quot;scritps_name or command&quot;}" class="form-control" maxlength="200" required>
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_queue">Queue:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="text" id="id_queue" name="queue" value="{{ job_info.queue|default_if_none:"" }}" class="form-control" maxlength="200">
+                                <span class="help-block m-b-none">Queue defined in CELERY_TASK_QUEUES</span>
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_exchange">Exchange:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="text" id="id_exchange" name="exchange" value="{{ job_info.exchange|default_if_none:"" }}" class="form-control" maxlength="200">
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_routing_key">Routing key:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="text" id="id_routing_key" name="routing_key" value="{{ job_info.routing_key|default_if_none:"" }}" class="form-control" maxlength="200">
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_expires">过期时间:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="datetime" id="id_expires" name="expires" value="{% if job_info.expires|default_if_none:"" %}{{ job_info.expires|date:"Y-m-d H:i:s" }}{% else %}{{ job_info.expires|default_if_none:"" }}{% endif %}" placeholder="2018-07-29 21:13:22" class="form-control">
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        {% ifequal job_info.enabled 1 %}
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_enabled">Enabled:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <select id="id_enabled" name="enabled" class="form-control select2">
+                                  <option value="True" selected>启用</option>
+                                  <option value="False">禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_enabled">Enabled:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <select id="id_enabled" name="enabled" class="form-control select2">
+                                  <option value="True">启用</option>
+                                  <option value="False" selected>禁用</option>
+                                </select>
+                            </div>
+                        </div>
+                        {% endifequal %}
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_description">Description:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <textarea name="description" id="id_description" class="form-control">{{ job_info.description }}</textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label  class="control-label col-sm-2 col-lg-2" for="id_regtask">Task (registered):</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <select id="id_regtask" name="regtask" class="form-control select2">
+                                        <option value="" selected>---------</option>
+                                       {% for task in tasks %}
+                                             <option  value="{{ task }}">&nbsp;&nbsp;{{ task }}</option>
+                                       {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <div class="col-sm-12">
+                            <button type="submit" class="btn btn-info" style="float: right">保存</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+<script type="text/javascript">
+    var index = parent.layer.getFrameIndex(window.name);
+    var success = {{ status }};
+    if ( success == '1' ) {
+        parent.$("#handle_status").val('1');
+        parent.layer.close(index);
+    } else if( success == '2' ) {
+        parent.$("#handle_status").val('2');
+        parent.layer.close(index);
+    }
+</script>
+</body>
+</html>

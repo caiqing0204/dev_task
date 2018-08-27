@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block interval_list %}
+    active
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-info">
+            <div class="box-header with-border">
+              <h3 class="box-title">添加interval</h3>
+            </div>
+                {% if error %}
+                    <div class="alert alert-warning text-center">{{ error }}</div>
+                {% endif %}
+                {% if msg %}
+                    <div class="alert alert-success text-center">{{ msg }}</div>
+                {% endif %}
+            <form method="post" class="form-horizontal">{% csrf_token %}
+              <div class="box-body">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_every">Every:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="number" id="id_every" name="every" class="form-control" required>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_period">Period:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <select id="id_period" name="period" class="form-control select2" required>
+                            <option value="" selected>---------</option>
+                            <option value="days">Days</option>
+                            <option value="hours">Hours</option>
+                            <option value="minutes">Minutes</option>
+                            <option value="seconds">Seconds</option>
+                            <option value="microseconds">Microseconds</option>
+                        </select>
+                    </div>
+                </div>
+              </div>
+              <div class="box-footer">
+                  <div class="col-sm-4 col-sm-offset-2">
+                      <button type="reset" class="btn btn-default">重置</button>
+                      <button type="submit" class="btn btn-info">保存</button>
+                  </div>
+              </div>
+            </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block  scripts-files %}
+<script src="{% static 'js/select2.full.min.js' %}"></script>
+<script>
+$(function () {
+    $('.select2').select2();
+});
+</script>
+{% endblock %}

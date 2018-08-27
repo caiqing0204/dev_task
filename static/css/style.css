@@ -1,0 +1,10 @@
+hr.hr-line-dashed {
+  border-top: 1px dashed #e7eaec;
+  color: #ffffff;
+  background-color: #ffffff;
+  height: 1px;
+  margin: 20px 0;
+}
+hr.hr-line-dashed {
+  margin: 15px 0;
+}

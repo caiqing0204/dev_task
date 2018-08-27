@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block crontab_list %}
+    active
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-info">
+            <div class="box-header with-border">
+              <h3 class="box-title">添加Crontab</h3>
+            </div>
+                {% if error %}
+                    <div class="alert alert-warning text-center">{{ error }}</div>
+                {% endif %}
+                {% if msg %}
+                    <div class="alert alert-success text-center">{{ msg }}</div>
+                {% endif %}
+            <form method="post" class="form-horizontal">{% csrf_token %}
+              <div class="box-body">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_minute">Minute:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_minute" name="minute" value="*" class="form-control" maxlength="64" required>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_hour">Hour:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_hour" name="hour" value="*" class="form-control" maxlength="64" required>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_day_of_month">Day of month:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_day_of_month" name="day_of_month" value="*" class="form-control" maxlength="64" required>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_month_of_year">Month of year:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_month_of_year" name="month_of_year" value="*" class="form-control" maxlength="64" required>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_day_of_week">Day of week:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_day_of_week" name="day_of_week" value="*" class="form-control" maxlength="64" required>
+                    </div>
+                </div>
+              </div>
+              <div class="box-footer">
+                  <div class="col-sm-4 col-sm-offset-2">
+                      <button type="reset" class="btn btn-default">重置</button>
+                      <button type="submit" class="btn btn-info">保存</button>
+                  </div>
+              </div>
+            </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block  scripts-files %}
+<script src="{% static 'js/select2.full.min.js' %}"></script>
+<script>
+$(function () {
+    $('.select2').select2();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block crontab_list %}
+    active
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+        <!-- Horizontal Form -->
+            <form action="{% url 'job_crontab_del' %}" method="post">
+                {% csrf_token %}
+                <div class="box box-info">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">Crontab列表</h3>
+                    </div>
+                    <div class="box-body">
+                        <div style="padding-left: 0;bottom: 5px;" class="col-sm-12">
+                            <div class="btn-group">
+                                <button id="btn_add" type="button" class="btn btn-default" onclick="window.location.href='{% url 'job_crontab_add' %}'">
+                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+                                </button>
+                            </div>
+                        </div>
+                        <table id="crontab_table" class="table table-bordered table-striped">
+                          <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" onclick="checkAll(this, 'item1');" />
+                                </th>
+                                <th>分(Minute)</th>
+                                <th>时(Hour)</th>
+                                <th>日/月(Day of month)</th>
+                                <th>月/年(Month of year)</th>
+                                <th>日/周(Day of week)</th>
+                                <th>操作</th>
+                            </tr>
+                          </thead>
+                            <tbody>
+                            {% for crontab in crontab_info %}
+                                <tr class="even gradeA">
+                                    <td><input type="checkbox" id="u_id" class="item1" value="{{ crontab.id }}" name="crontab_check" /></td>
+                                    <td><a href="#"><li style="list-style-type:none"> {{ crontab.minute }}</li></a></td>
+                                    <td>{{ crontab.hour }}</td>
+                                    <td>{{ crontab.day_of_month }}</td>
+                                    <td>{{ crontab.month_of_year }}</td>
+                                    <td>{{ crontab.day_of_week }}</td>
+                                    <td class="text-center">
+                                        <a class="btn btn-sm btn-info" onclick="return crontab_edit({{ crontab.id }})">编辑</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <div class="btn-group">
+						    <button class="btn btn-danger" style="width: 60pt;font-size: medium" onclick="return checkSubmit()"><b>删除</b></button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <input id="handle_status" value="" hidden="hidden">
+{% endblock %}
+{% block scripts-files %}
+<script>
+function checkAll(sender, checkClass) {
+    var checkItems = document.getElementsByTagName('input');
+    for (var i = 0; i < checkItems.length; i++) {
+        var checkItem = checkItems[i];
+        if (checkItem.type === 'checkbox' && checkItem.className === 'item1') {
+            checkItem.checked = sender.checked;
+        }
+    }
+}
+</script>
+<script>
+  $(function () {
+    $('#crontab_table').DataTable({
+      "paging": true,
+      "lengthChange": true,
+      "searching": true,
+      "ordering": false,
+      "info": true,
+      "autoWidth": true
+    });
+  });
+</script>
+<script>
+function checkSubmit() {
+    if (!confirm("确定删除？")) {
+        window.event.returnValue = false;
+    }
+}
+</script>
+<script>
+function crontab_edit(n){
+    layer.open({
+    type: 2,
+    title: ['修改Crontab信息','background-color:#408EBA;color:#FFFFFF;'],
+    closeBtn: 1,
+    area: ['700px', '550px'],
+    //shade: [0.8,'#393D49'],
+    shadeClose: true, //点击遮罩关闭
+    content: ['/task/job/crontab/edit/' + n],
+    end:function(){
+            var handle_status = $("#handle_status").val();
+            if ( handle_status == '1' ) {
+                layer.msg('保存成功！',{
+                    icon: 1,
+                    time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                },function(){
+                    history.go(0);
+                });
+            } else if ( handle_status == '2' ) {
+                layer.msg('修改失败！',{
+                    icon: 2,
+                    time: 2000 //2秒关闭（如果不配置，默认是3秒）
+                },function(){
+                    history.go(0);
+                });
+            }
+        }
+  });
+}
+</script>
+{% endblock %}

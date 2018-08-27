@@ -1,0 +1,42 @@
+.. _changelog:
+
+================
+ Change history
+================
+
+.. _version-1.0.2:
+
+1.0.2
+=====
+:release-date:
+:release-by:
+
+- Store task name, args, kwargs as part of the task results in database.
+    Contributed by :github_user: `wardal`.
+
+- Admin screen changes - task name filter, search on task_name, task_id, status.
+    Contributed by :github_user: `jaylynch`.
+
+.. _version-1.0.1:
+
+1.0.1
+=====
+:release-date: 2016-11-07 02:00 p.m. PST
+:release-by: Ask Solem
+
+- Migrations were not being installed as part of the distribution (Issue #4).
+
+- Now includes simple task result admin interface.
+
+    Contributed by :github_user:`zeezdev`.
+
+- Now depends on Celery 4.0.0.
+
+.. _version-1.0.0:
+
+1.0.0
+=====
+:release-date: 2016-09-08 03:19 p.m. PDT
+:release-by: Ask Solem
+
+- Initial release

@@ -1,0 +1,95 @@
+# dev_task
+dev_task是一款基于django-celery调度执行的任务管理平台，目前平台基于celery3.1.25开发，后面一款基于4.0版本的开发，可供大家使用
+## 环境：
+全新Centos6.5系统，Python2.7版本以上
+项目部署目录 /opt
+关闭防火墙
+setenforce 0
+service iptables stop
+安装mysql5.6,rabbitmq,并且启动服务
+安装supervisor，必须是3.0以上的版本，centos6.5yum安装默认是2.+的版本，这里需要手动安装。
+## 依赖
+```
+yum install -y epel-release
+yum clean all
+yum install -y python python-dev python-devel   python-pip  gcc  msgpack-python openssl openssl-devel  mysql-devel
+```
+## server端和client节点都需要安装的模块，并且git clone代码到server和client上
+```
+pip install django==1.11.9
+pip install django-celery==3.2.2
+pip install celery==3.1.25
+pip isntall MySQL-python==1.2.5
+pip install SQLAlchemy==1.2.10
+pip install msgpack==0.5.6
+git clone
+```
+
+## server端安装
+### 关于rabbitmq日志文件等信息的配置，大家可以查官网，自行配置。
+###创建用户，添加user_tags，创建vhost，用户授权
+```
+rabbitmqctl add_user rabbitmqadmin 1234qwer
+rabbitmqctl set_user_tags rabbitmqadmin administrator
+rabbitmqctl add_vhost dev_task
+rabbitmqctl set_permissions -p dev_task rabbitmqadmin ".*" ".*" ".*"
+```
+
+### 安装uwsgi
+```
+pip install uwsgi==2.0.17.1
+```
+### 配置dev_task.conf
+配置好相应的mysql，rabbitmq信息
+
+### 安装django-celery-result和项目
+```
+cd /opt/dev_task/
+python manage.py makemigrations
+python manage.py migrate
+cd /opt/dev_task/supply/django-celery-results-master/
+python setup.py install
+```
+### 创建登录用户
+```
+python /opt/dev_task/createsuperuser.py
+```
+### 部署supervisord
+```
+cp /opt/dev_task/server_supervisord.conf /etc/supervisord.conf
+supervisord -c /etc/supervisord.conf
+```
+### 静态文件目录授权
+```
+chmod 777 /opt/dev_task/static/ -R
+```
+### 启动nginx,关于nginx配置和修改，可以自己随意定制，不必按照本文档进行,可参考文档部分进行部署配置。
+```
+cp /opt/dev_task/nginx.conf  /usr/local/nginx/conf/
+```
+### 登录
+http://ip:port
+admin
+password!23456
+
+
+## client端安装
+### 配置dev_task.conf
+配置好相应的mysql，rabbitmq信息
+
+### 安装django-celery-result
+```
+cd /opt/dev_task/supply/django-celery-results-master/
+python setup.py install
+```
+### 部署supervisord
+```
+cp /opt/dev_task/client_supervisord.conf /etc/supervisord.conf
+supervisord -c /etc/supervisord.conf
+```
+
+## 注意
+### server端和client端一样
+升级完python版本以后，需要重新安装一下pip，下载pip的tar包，解压安装。重新制定软连接，就可以使用了。
+我这里是手动安装supervisord 3版本的，安装supervisord之前，需要安装setuptools，centos6.5 yum安装supervisord，版本是2.1,
+

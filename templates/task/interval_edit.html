@@ -1,0 +1,81 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/AdminLTE.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'layer/layer.js' %}"></script>
+    <script src="{% static 'js/select2.full.min.js' %}"></script>
+    <script>
+    $(function () {
+        $('.select2').select2();
+    })
+    </script>
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+    <section class="content">
+        <div class="row">
+            <div class="col-md-12">
+                <form method="post" class="form-horizontal" action="">{% csrf_token %}
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_every">Every:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <input type="number" id="id_every" name="every" class="form-control" value="{{ interval_info.every }}" required>
+                            </div>
+                        </div>
+                        <hr class="hr-line-dashed">
+                        <div class="form-group">
+                            <label class="control-label col-sm-2 col-lg-2" for="id_period">Period:</label>
+                            <div class="col-sm-8 col-lg-8">
+                                <select id="id_period" name="period" class="form-control select2" required>
+                                    <script>
+                                        var period_data = {Days: "days",Hours: "hours",Minutes: "minutes",Seconds: "seconds",Microseconds: "microseconds"};
+                                        var period_value = '{{ interval_info.period }}';
+                                        $.each(period_data, function (k,v) {
+                                            console.log(period_value);
+                                            console.log(v);
+                                            if ( period_value == v) {
+
+                                                document.write("<option value="+v+" selected>"+k+"</option>")
+                                            }else {
+                                                document.write("<option value="+v+">"+k+"</option>")
+                                            }
+                                        });
+                                    </script>
+                                </select>
+                            </div>
+                        </div>
+                      </div>
+                    <div class="box-footer">
+                        <div class="col-sm-12">
+                            <button type="submit" class="btn btn-info" style="float: right">保存</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+</div>
+<script type="text/javascript">
+    var index = parent.layer.getFrameIndex(window.name);
+    var success = {{ status }};
+    if ( success == '1' ) {
+        parent.$("#handle_status").val('1');
+        parent.layer.close(index);
+    } else if( success == '2' ) {
+        parent.$("#handle_status").val('2');
+        parent.layer.close(index);
+    }
+</script>
+</body>
+</html>

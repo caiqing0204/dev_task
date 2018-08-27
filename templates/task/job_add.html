@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% block job_list %}
+    active
+{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="box box-info">
+            <div class="box-header with-border">
+              <h3 class="box-title">添加任务</h3>
+            </div>
+                {% if error %}
+                    <div class="alert alert-warning text-center">{{ error }}</div>
+                {% endif %}
+                {% if msg %}
+                    <div class="alert alert-success text-center">{{ msg }}</div>
+                {% endif %}
+            <form method="post" class="form-horizontal">{% csrf_token %}
+              <div class="box-body">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_nice_name">主机名称:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_nice_name" name="nice_name" class="form-control" maxlength="200" required>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_host">主机ip:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_host" name="host" class="form-control" maxlength="200" required>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_name">Task name:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_name" name="name" class="form-control" maxlength="200" required>
+                        <span class="help-block m-b-none">Useful description</span>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_task">Task (custom):</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_task" name="task" class="form-control" maxlength="200">
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_interval">Interval:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <select id="id_interval" name="interval" class="form-control select2">
+                                <option value="" selected>---------</option>
+                               {% for interval in interval_info %}
+                                     <option  value="{{ interval.id }}">every&nbsp;&nbsp;&nbsp;&nbsp;{{ interval.every }}&nbsp;&nbsp;&nbsp;&nbsp;{{ interval.period }}</option>
+                               {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_crontab">Crontab:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <select id="id_crontab" name="crontab" class="form-control select2">
+                                <option value="" selected>---------</option>
+                               {% for crontab in crontab_info %}
+                                     <option  value="{{ crontab.id }}">{{ crontab.minute }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ crontab.hour }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ crontab.day_of_month }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ crontab.month_of_year }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ crontab.day_of_week }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(m/h/dM/MY/d)</option>
+                               {% endfor %}
+                        </select>
+                    <span class="help-block m-b-none">Use one of interval/crontab</span>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_args">Arguments:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_args" name="args" value="[]" class="form-control" maxlength="200">
+                        <span class="help-block m-b-none">JSON encoded positional arguments</span>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_kwargs">任务指令:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_kwargs" name="kwargs" placeholder="{&quot;host&quot;:&quot;your_hostname&quot;,&quot;name&quot;:&quot;scritps_name or command&quot;}" class="form-control" maxlength="200" required>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_queue">Queue:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_queue" name="queue" class="form-control" maxlength="200">
+                        <span class="help-block m-b-none">Queue defined in CELERY_TASK_QUEUES</span>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_exchange">Exchange:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_exchange" name="exchange" class="form-control" maxlength="200">
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_routing_key">Routing key:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_routing_key" name="routing_key" class="form-control" maxlength="200">
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_expires">过期时间:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <input type="text" id="id_expires" name="expires" placeholder="2018-07-29 21:13:22" class="form-control">
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_enabled">Enabled:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <select id="id_enabled" name="enabled" class="form-control select2">
+                          <option value="True" selected>启用</option>
+                          <option value="False">禁用</option>
+                        </select>
+                    </div>
+                </div>
+                <hr class="hr-line-dashed">
+                <div class="form-group">
+                    <label class="control-label col-sm-2 col-lg-2" for="id_description">Description:</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <textarea name="description" id="id_description" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label  class="control-label col-sm-2 col-lg-2" for="id_regtask">Task (registered):</label>
+                    <div class="col-sm-8 col-lg-8">
+                        <select id="id_regtask" name="regtask" class="form-control select2">
+                                <option value="" selected>---------</option>
+                               {% for task in tasks %}
+                                     <option value="{{ task }}">&nbsp;&nbsp;{{ task }}</option>
+                               {% endfor %}
+                        </select>
+                    </div>
+                </div>
+              </div>
+              <div class="box-footer">
+                  <div class="col-sm-4 col-sm-offset-2">
+                      <button type="reset" class="btn btn-default">重置</button>
+                      <button type="submit" class="btn btn-info">保存</button>
+                  </div>
+              </div>
+            </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block  scripts-files %}
+    <script src="{% static 'js/select2.full.min.js' %}"></script>
+        <script>
+    $(function () {
+        $('.select2').select2();
+    });
+    </script>
+{% endblock %}
