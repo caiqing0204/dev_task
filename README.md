@@ -1,5 +1,13 @@
 # dev_task
-dev_task是一款基于django-celery-beat调度执行的任务管理平台，平台基于celery4.1.1开发，实现了类似crontab定时执行任务的功能。(后期将作为运维平台dev_system的任务编排组件)
+dev_task是一款基于django-celery-beat调度执行的任务管理平台，平台基于celery4.1.1开发，实现了类似crontab定时执行任务的功能。(后期将作为运维平台dev_system的任务编排组件)<br>
+### 当前版本：v0.2
+1. 平台已经实现邮件告警，支持通知多人邮件
+2. UI界面的微调整
+3. 删除了添加任务界面的rabbitmq相关配置
+4. 修复了0.1版本中执行任务结果显示的bug
+5. 任务结果支持分页，条件搜索等
+### 下个版本v1.0
+主要添加监控
 ## 环境：
 建议大家在centos7.0系统安装此项目<br>
 Python2.7版本以上<br>
