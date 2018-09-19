@@ -14,14 +14,14 @@
                         <h3 class="box-title">任务列表</h3>
                     </div>
                     <div class="box-body">
-                        <div style="padding-left: 0;bottom: 5px;" class="col-sm-12">
-                            <div class="btn-group">
-                                <button id="btn_add" type="button" class="btn btn-default" onclick="window.location.href='{% url 'job_add' %}'">
-                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
-                                </button>
-                            </div>
-                        </div>
                         <table id="job_table" class="table table-bordered table-striped">
+                            <div style="padding-left: 0;bottom: 5px;" class="col-sm-12">
+                                <div class="btn-group">
+                                    <button id="btn_add" type="button" class="btn btn-default" onclick="window.location.href='{% url 'job_add' %}'">
+                                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+                                    </button>
+                                </div>
+                            </div>
                           <thead>
                             <tr>
                                 <th>
@@ -34,9 +34,10 @@
                                 <th>Crontab</th>
                                 <th>interval</th>
                                 <th>上次运行</th>
-                                <th>运行次数</th>
                                 <th>上次修改</th>
-                                <th>过期时间</th>
+                                <th>运行状态</th>
+                                <th>是否启用</th>
+{#                                <th>过期时间</th>#}
                                 <th>操作</th>
                             </tr>
                           </thead>
@@ -47,13 +48,26 @@
                                     <td>{{ job.nice_name }}</td>
                                     <td>{{ job.host }}</td>
                                     <td><a href="#"><li style="list-style-type:none"> {{ job.name }}</li></a></td>
-                                    <td>{{ job.kwargs }}</td>
+                                    <td>{{ job.kwargs|cmd2str }}</td>
                                     <td>{% if job.crontab_id %}{{ job.crontab_id|crontab2str }}{% endif %}</td>
                                     <td>{% if job.interval_id %}{{ job.interval_id|intervals2str }}{% endif %}</td>
                                     <td>{{ job.last_run_at|date:"Y-m-d H:i:s" }}</td>
-                                    <td>{{ job.total_run_count }}</td>
                                     <td>{{ job.date_changed|date:"Y-m-d H:i:s" }}</td>
-                                    <td>{{ job.expires|date:"Y-m-d H:i:s" }}</td>
+{#                                    <td>{{ job.expires|date:"Y-m-d H:i:s" }}</td>#}
+                                    <td>
+                                    {% ifequal job.run_status 1 %}
+                                        <span class="label label-success">计时中</span>
+                                    {% else %}
+                                        <span class="label label-default">已停止</span>
+                                    {% endifequal %}
+                                    </td>
+                                    <td>
+                                    {% ifequal job.enabled 1 %}
+                                        <span class="label label-success">启用</span>
+                                    {% else %}
+                                        <span class="label label-default">禁用</span>
+                                    {% endifequal %}
+                                    </td>
                                     <td class="text-center">
                                         <a class="btn btn-sm btn-info" onclick="return job_edit({{ job.id }})">编辑</a>
                                     </td>
@@ -62,7 +76,7 @@
                             </tbody>
                         </table>
                         <div class="btn-group">
-						    <button class="btn btn-danger" style="width: 60pt;font-size: medium" onclick="return checkSubmit()"><b>删除</b></button>
+                            <button class="btn btn-danger" style="width: 60pt;font-size: medium" onclick="return checkSubmit()"><b>删除</b></button>
                         </div>
                     </div>
                 </div>

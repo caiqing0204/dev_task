@@ -35,7 +35,7 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERYD_PREFETCH_MULTIPLIER = 1
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -90,6 +90,14 @@ WSGI_APPLICATION = 'dev_task.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
+#
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
 DATABASES = {}
 if config.get('db', 'engine') == 'mysql':
     DB_HOST = config.get('db', 'host')
@@ -153,6 +161,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 STATIC_URL = '/static/'
@@ -180,3 +189,20 @@ REST_FRAMEWORK = {
     )
 }
 
+# 邮箱配置
+EMAIL_USE_TLS = config.getboolean('mail', 'email_use_tls')
+EMAIL_USE_SSL = config.get('mail', 'email_use_ssl')
+EMAIL_HOST = config.get('mail', 'email_host')  # 如果是 163 改成 smtp.163.com
+EMAIL_PORT = config.get('mail', 'email_port')
+EMAIL_HOST_USER = config.get('mail', 'email_host_user')  # 帐号
+EMAIL_HOST_PASSWORD = config.get('mail', 'email_host_password')  # 密码
+DEFAULT_FROM_EMAIL = config.get('mail', 'email_host_user')
+default_email_users = config.get('mail', 'default_email_user')
+try:
+    EMAIL_USE_SSL = config.getboolean('mail', 'email_use_ssl')
+except ConfigParser.NoOptionError:
+    EMAIL_USE_SSL = False
+EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend' if EMAIL_USE_SSL else 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_TIMEOUT = 5
+
+host_ip = config.get("localhost", 'host_ip')

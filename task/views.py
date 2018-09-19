@@ -1,21 +1,23 @@
 # -*- coding:utf-8 -*-
 
-import json
-from datetime import date, datetime
-from django.shortcuts import HttpResponse, HttpResponseRedirect
-from django.views.generic.base import View
-from django.core.urlresolvers import reverse
-from django.contrib import auth
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render as my_render
-from django.contrib.auth.decorators import login_required
 from django_celery_beat.models import IntervalSchedule, CrontabSchedule, PeriodicTask
-from django_celery_results.models import TaskResult
-from models import TimedTask
-from celery import current_app
-# from django.utils.translation import ugettext_lazy as _
+from dev_task.celery import rabbitmq_exchange, rabbitmq_routing_key, rabbitmq_queue
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.decorators import login_required
 from django.db.models.signals import pre_save, pre_delete
+from django_celery_results.models import TaskResult
+from django.contrib.auth import authenticate, login
+from django.shortcuts import HttpResponseRedirect
+from django.shortcuts import render as my_render
+from dev_task.settings import default_email_users
+from django.core.urlresolvers import reverse
+from django.views.generic.base import View
+from datetime import datetime
+from django.contrib import auth
+from celery import current_app
+from models import TimedTask
 from forms import LoginForm
+import json
 
 
 class LoginRequiredMixin(object):
@@ -80,12 +82,14 @@ class job_add(LoginRequiredMixin, View):
     def get(self, request):
         interval_info = IntervalSchedule.objects.all()
         crontab_info = CrontabSchedule.objects.all()
+        default_email_user = default_email_users
         _ = self.celery_app.loader.import_default_modules()
         tasks = list(sorted(name for name in self.celery_app.tasks if not name.startswith('celery.')))
         return my_render(request, "task/job_add.html", locals())
 
     def post(self, request):
         enabled_value = str(request.POST.get("enabled")) == str(True)
+        is_send_email_value = str(request.POST.get("is_send_email")) == str(True)
         job_data = {
             "nice_name": request.POST.get("nice_name", ''),
             "host": request.POST.get("host", ''),
@@ -95,12 +99,16 @@ class job_add(LoginRequiredMixin, View):
             "crontab_id": request.POST.get("crontab", ''),
             "args": request.POST.get("args", ''),
             "kwargs": request.POST.get("kwargs", ''),
-            "queue": request.POST.get("queue", ''),
-            "exchange": request.POST.get("exchange", ''),
-            "routing_key": request.POST.get("routing_key", ''),
-            "expires": request.POST.get("expires") if request.POST.get("expires") else None,
+            "queue": str(rabbitmq_queue),
+            "exchange": rabbitmq_exchange,
+            "routing_key": str(rabbitmq_routing_key),
+            # "expires": request.POST.get("expires") if request.POST.get("expires") else None,
+            "expires": None,
             "enabled": enabled_value,
-            "description": request.POST.get("description", '')
+            "run_status": True if enabled_value else False,
+            "description": request.POST.get("description", ''),
+            "email": request.POST.get("email"),
+            "is_send_email": is_send_email_value
         }
         if job_data['interval_id'] and job_data['crontab_id']:
             error = u"you can only choices one of interval or crontab!"
@@ -156,6 +164,7 @@ class job_edit(LoginRequiredMixin, View):
 
     def post(self, request, id):
         enabled_value = str(request.POST.get("enabled")) == str(True)
+        is_send_email_value = str(request.POST.get("is_send_email")) == str(True)
         job_data = {
             "nice_name": request.POST.get("nice_name", ''),
             "host": request.POST.get("host", ''),
@@ -166,11 +175,15 @@ class job_edit(LoginRequiredMixin, View):
             "kwargs": request.POST.get("kwargs", ''),
             "queue": request.POST.get("queue", ''),
             "enabled": enabled_value,
+            "run_status": True if enabled_value else False,
             "exchange": request.POST.get("exchange", ''),
             "routing_key": request.POST.get("routing_key", ''),
-            "expires": request.POST.get("expires") if request.POST.get("expires") else None,
+            # "expires": request.POST.get("expires") if request.POST.get("expires") else None,
+            "expires": None,
             "description": request.POST.get("description", ''),
-            "date_changed": datetime.now()
+            "date_changed": datetime.now(),
+            "email": request.POST.get("email"),
+            "is_send_email": is_send_email_value
         }
         if job_data['interval_id'] and job_data['crontab_id']:
             status = 2
@@ -337,5 +350,31 @@ class job_crontab_edit(LoginRequiredMixin, View):
 # job result list
 class job_result_list(LoginRequiredMixin, View):
     def get(self, request):
-        result_info = TaskResult.objects.all()
+        result_dict = {}
+        host_ip = request.GET.get('host', '')
+        status = request.GET.get('status', '')
+        kwargs = request.GET.get('kwargs', '')
+        timedtask_obj = TimedTask.objects.all()
+        result_list = TaskResult.objects.all()
+        if host_ip and kwargs:
+            result_dict['task_kwargs__contains'] = host_ip and kwargs
+        elif host_ip:
+            result_dict['task_kwargs__contains'] = host_ip
+        elif kwargs:
+            result_dict['task_kwargs__contains'] = kwargs
+        if status:
+            result_dict['status__contains'] = status
+        if result_dict:
+            result_list = TaskResult.objects.filter(**result_dict)
+        total_result = result_list.count()
+        paginator = Paginator(result_list, 10)
+        page = request.GET.get('page', 1)
+        currentPage = int(page)
+
+        try:
+            result_list = paginator.page(page)
+        except PageNotAnInteger:
+            result_list = paginator.page(1)
+        except EmptyPage:
+            result_list = paginator.page(paginator.num_pages)
         return my_render(request, "task/result_list.html", locals())

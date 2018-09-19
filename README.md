@@ -20,7 +20,7 @@ yum install -y python python-dev python-devel   python-pip  gcc  msgpack-python 
 pip install django==1.11.9
 pip install django-celery-beat==1.0.1
 pip install celery==4.1.1
-pip isntall MySQL-python==1.2.5
+pip install MySQL-python==1.2.5
 pip install SQLAlchemy==1.2.10
 pip install msgpack==0.5.6
 git clone https://github.com/caiqing0204/dev_task.git
@@ -28,7 +28,7 @@ git clone https://github.com/caiqing0204/dev_task.git
 
 ## server端安装
 关于rabbitmq日志文件等信息的配置，大家可以查官网，自行配置<br>
-#####创建用户，添加user_tags，创建vhost，用户授权
+###### 创建用户，添加user_tags，创建vhost，用户授权
 ```
 rabbitmqctl add_user rabbitmqadmin 1234qwer
 rabbitmqctl set_user_tags rabbitmqadmin administrator
@@ -92,4 +92,3 @@ supervisord -c /etc/supervisord.conf
 升级完python版本以后，需要重新安装一下pip，下载pip的tar包，解压安装。重新制定软连接，就可以使用了。
 我这里是手动安装supervisord 3版本的，安装supervisord之前，需要安装setuptools，centos6.5 yum安装supervisord，版本是2.1,
 有问题，欢迎随时提交issues！
-

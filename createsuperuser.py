@@ -13,8 +13,8 @@ email = ''
 if User.objects.filter(username=username).count() == 0:
     try:
         User.objects.create_superuser(username, email, password)
-        print('Superuser created succeed!.')
+        print('Superuser created succeed.')
     except Exception:
-        print('Superuser created failed!.')
+        print('Superuser created failed.')
 else:
     print('Superuser creation skipped.')
