@@ -100,3 +100,8 @@ supervisord -c /etc/supervisord.conf
 升级完python版本以后，需要重新安装一下pip，下载pip的tar包，解压安装。重新制定软连接，就可以使用了。
 我这里是手动安装supervisord 3版本的，安装supervisord之前，需要安装setuptools，centos6.5 yum安装supervisord，版本是2.1,
 有问题，欢迎随时提交issues！
+
+## screenshots
+![screenshots](./screenshots/job_list.png   "screenshots")
+![screenshots](./screenshots/result_list1.png   "screenshots")
+![screenshots](./screenshots/result_list2.png   "screenshots")
