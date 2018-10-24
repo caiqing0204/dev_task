@@ -177,3 +177,34 @@
         </div>
     </div>
 {% endblock %}
+{% block scripts-files %}
+    <script>
+        $(function () {
+            $('.select2').select2();
+        })
+    </script>
+    <script>
+    $(document).ready(function () {
+        jQuery.validator.addMethod("ip", function(value, element) {
+            var ip = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)/;
+            return this.optional(element) || (ip.test(value));
+        }, "Ip地址格式错误");
+        $('#job_form').validate({
+            rules: {
+                host: {
+                    required : true,
+                    minlength : 7,
+                    ip : true
+                }
+            },
+            messages: {
+                host: {
+                    required: "请输入ip",
+                    minlength: "IP至少由7个字母组成"
+                }
+            }
+
+        });
+    });
+    </script>
+{% endblock %}
