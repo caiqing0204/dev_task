@@ -1,8 +1,5 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-{% block job_list %}
-    active
-{% endblock %}
 {% block content %}
     <div class="row">
         <div class="col-md-12">
@@ -11,12 +8,18 @@
               <h3 class="box-title">添加任务</h3>
             </div>
                 {% if error %}
-                    <div class="alert alert-warning text-center">{{ error }}</div>
+                    <div class="alert alert-warning text-center">
+                        {{ error|safe }}
+                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button" style="outline: none;">×</button>
+                    </div>
                 {% endif %}
                 {% if msg %}
-                    <div class="alert alert-success text-center">{{ msg }}</div>
+                    <div class="alert alert-success text-center">
+                        {{ msg|safe }}
+                        <button aria-hidden="true" data-dismiss="alert" class="close" type="button" style="outline: none;">×</button>
+                    </div>
                 {% endif %}
-            <form method="post" class="form-horizontal">{% csrf_token %}
+            <form method="post" class="form-horizontal" id="job_form">{% csrf_token %}
               <div class="box-body">
                 <div class="form-group">
                     <label class="control-label col-sm-2 col-lg-2" for="id_nice_name">主机名称:</label>
@@ -28,7 +31,7 @@
                 <div class="form-group">
                     <label class="control-label col-sm-2 col-lg-2" for="id_host">主机ip:</label>
                     <div class="col-sm-8 col-lg-8">
-                        <input type="text" id="id_host" name="host" class="form-control" maxlength="200" required>
+                        <input type="text" id="id_host" name="host" class="form-control" maxlength="200">
                     </div>
                 </div>
                 <hr class="hr-line-dashed">
@@ -36,7 +39,7 @@
                     <label class="control-label col-sm-2 col-lg-2" for="id_name">Task name:</label>
                     <div class="col-sm-8 col-lg-8">
                         <input type="text" id="id_name" name="name" class="form-control" maxlength="200" required>
-                        <span class="help-block m-b-none">Useful description</span>
+                        <span class="help-block m-b-none">Task description</span>
                     </div>
                 </div>
                 <hr class="hr-line-dashed">
@@ -86,35 +89,6 @@
                         <input type="text" id="id_kwargs" name="kwargs" placeholder="{&quot;host&quot;:&quot;your_hostname&quot;,&quot;name&quot;:&quot;scritps_name or command&quot;}" class="form-control" maxlength="200" required>
                     </div>
                 </div>
-{#                <hr class="hr-line-dashed">#}
-{#                <div class="form-group">#}
-{#                    <label class="control-label col-sm-2 col-lg-2" for="id_queue">Queue:</label>#}
-{#                    <div class="col-sm-8 col-lg-8">#}
-{#                        <input type="text" id="id_queue" name="queue" class="form-control" maxlength="200">#}
-{#                        <span class="help-block m-b-none">Queue defined in CELERY_TASK_QUEUES</span>#}
-{#                    </div>#}
-{#                </div>#}
-{#                <hr class="hr-line-dashed">#}
-{#                <div class="form-group">#}
-{#                    <label class="control-label col-sm-2 col-lg-2" for="id_exchange">Exchange:</label>#}
-{#                    <div class="col-sm-8 col-lg-8">#}
-{#                        <input type="text" id="id_exchange" name="exchange" class="form-control" maxlength="200">#}
-{#                    </div>#}
-{#                </div>#}
-{#                <hr class="hr-line-dashed">#}
-{#                <div class="form-group">#}
-{#                    <label class="control-label col-sm-2 col-lg-2" for="id_routing_key">Routing key:</label>#}
-{#                    <div class="col-sm-8 col-lg-8">#}
-{#                        <input type="text" id="id_routing_key" name="routing_key" class="form-control" maxlength="200">#}
-{#                    </div>#}
-{#                </div>#}
-{#                <hr class="hr-line-dashed">#}
-{#                <div class="form-group">#}
-{#                    <label class="control-label col-sm-2 col-lg-2" for="id_expires">过期时间:</label>#}
-{#                    <div class="col-sm-8 col-lg-8">#}
-{#                        <input type="text" id="id_expires" name="expires" placeholder="2018-07-29 21:13:22" class="form-control">#}
-{#                    </div>#}
-{#                </div>#}
                 <hr class="hr-line-dashed">
                 <div class="form-group">
                     <label class="control-label col-sm-2 col-lg-2" for="id_enabled">Enabled:</label>

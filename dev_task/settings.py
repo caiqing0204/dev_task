@@ -33,6 +33,7 @@ CELERYD_MAX_TASKS_PER_CHILD = 30
 CELERY_ACCEPT_COUNT = ['json', 'msgpack']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERYD_PREFETCH_MULTIPLIER = 1
+# CELERYD_POOL_RESTARTS = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False

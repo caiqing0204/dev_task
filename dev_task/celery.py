@@ -1,17 +1,16 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
-import os
-from django.conf import settings
-from celery import Celery, platforms
-import ConfigParser
 from kombu import Queue, Exchange
+from celery import Celery
+import os
+import ConfigParser
+
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dev_task.settings')
 app = Celery('dev_task')
 
-# redis connect code
+# rabbitmq connect code
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 config = ConfigParser.ConfigParser()
 config.read(os.path.join(BASE_DIR, 'dev_task.conf'))
@@ -36,12 +35,7 @@ route = {
     }
 }
 app.conf.update(CELERY_QUEUES=queue, CELERY_ROUTES=route)
-# Using a string here means the worker doesn't have to serialize
-# the configuration object to child processes.
-# - namespace='CELERY' means all celery-related configuration keys
-#   should have a `CELERY_` prefix.
 app.config_from_object('django.conf:settings', namespace='CELERY')
-
 
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
@@ -51,4 +45,3 @@ app.autodiscover_tasks()
 @app.task(bind=True)
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
-

@@ -1,8 +1,5 @@
 {% extends "base.html" %}
 {% load staticfiles %}
-{% block interval_list %}
-    active
-{% endblock %}
 {% block content %}
     <div class="row">
         <div class="col-md-12">
@@ -10,11 +7,20 @@
             <div class="box-header with-border">
               <h3 class="box-title">添加interval</h3>
             </div>
-                {% if error %}
-                    <div class="alert alert-warning text-center">{{ error }}</div>
-                {% endif %}
-                {% if msg %}
-                    <div class="alert alert-success text-center">{{ msg }}</div>
+{#                {% if error %}#}
+{#                    <div class="alert alert-warning text-center">{{ error }}</div>#}
+{#                {% endif %}#}
+{#                {% if msg %}#}
+{#                    <div class="alert alert-success text-center">{{ msg }}</div>#}
+{#                {% endif %}#}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} help-message text-center" >
+                            {{ message|safe }}
+                            <button aria-hidden="true" data-dismiss="alert" class="close" type="button" style="outline: none;">×</button>
+                        </div>
+
+                    {% endfor %}
                 {% endif %}
             <form method="post" class="form-horizontal">{% csrf_token %}
               <div class="box-body">

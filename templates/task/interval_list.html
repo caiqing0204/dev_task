@@ -1,7 +1,4 @@
 {% extends "base.html" %}
-{% block interval_list %}
-    active
-{% endblock %}
 {% block content %}
     <div class="row">
         <div class="col-md-12">
@@ -15,8 +12,7 @@
                     <div class="box-body">
                         <div style="padding-left: 0;bottom: 5px;" class="col-sm-12">
                             <div class="btn-group">
-                                <button id="btn_add" type="button" class="btn btn-default" onclick="window.location.href='{% url 'job_interval_add' %}'">
-                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+                                <button id="btn_add" type="button" class="btn btn-success" onclick="window.location.href='{% url 'job_interval_add' %}'">添加interval
                                 </button>
                             </div>
                         </div>
@@ -56,17 +52,6 @@
 {% endblock %}
 {% block scripts-files %}
 <script>
-function checkAll(sender, checkClass) {
-    var checkItems = document.getElementsByTagName('input');
-    for (var i = 0; i < checkItems.length; i++) {
-        var checkItem = checkItems[i];
-        if (checkItem.type === 'checkbox' && checkItem.className === 'item1') {
-            checkItem.checked = sender.checked;
-        }
-    }
-}
-</script>
-<script>
   $(function () {
     $('#interval_table').DataTable({
       "paging": true,
@@ -77,13 +62,6 @@ function checkAll(sender, checkClass) {
       "autoWidth": true
     });
   });
-</script>
-<script>
-function checkSubmit() {
-    if (!confirm("确定删除？")) {
-        window.event.returnValue = false;
-    }
-}
 </script>
 <script>
 function interval_edit(n){

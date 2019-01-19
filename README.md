@@ -1,16 +1,14 @@
 # dev_task
 dev_task是一款基于django-celery-beat调度执行的任务管理平台，平台基于celery4.1.1开发，实现了类似crontab定时执行任务的功能。(后期将作为运维平台dev_system的任务编排组件)<br>
-### 当前版本：v0.2
-1. 平台已经实现邮件告警，支持通知多人邮件
-2. UI界面的微调整
-3. 删除了添加任务界面的rabbitmq相关配置
-4. 修复了0.1版本中执行任务结果显示的bug
-5. 任务结果支持分页，条件搜索等
-### 下个版本v1.0
-主要添加监控
+### 当前版本：v1.0
+1. 修复了邮件告警相关的bug
+2. 修复了任务结果分页
+3. 修复了任务显示状态
+4. 添加了client端celery状态监控
+5. 添加了rabbitmq部分状态监控
 ## 环境：
 建议大家在centos7.0系统安装此项目<br>
-Python2.7版本以上<br>
+Python2.7，暂不支持python3.x<br>
 项目部署目录 /opt<br>
 关闭防火墙<br>
 setenforce 0<br>
@@ -25,12 +23,7 @@ yum install -y python python-dev python-devel   python-pip  gcc  msgpack-python 
 ```
 ## server端和client节点都需要安装的模块，并且git clone代码到server和client上
 ```
-pip install django==1.11.9
-pip install django-celery-beat==1.0.1
-pip install celery==4.1.1
-pip install MySQL-python==1.2.5
-pip install SQLAlchemy==1.2.10
-pip install msgpack==0.5.6
+pip install -r requirements
 git clone https://github.com/caiqing0204/dev_task.git
 ```
 
@@ -102,6 +95,7 @@ supervisord -c /etc/supervisord.conf
 有问题，欢迎随时提交issues！
 
 ## screenshots
+![screenshots](./screenshots/index.png   "screenshots")
 ![screenshots](./screenshots/job_list.png   "screenshots")
 ![screenshots](./screenshots/result_list1.png   "screenshots")
 ![screenshots](./screenshots/result_list2.png   "screenshots")

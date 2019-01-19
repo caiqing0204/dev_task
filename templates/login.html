@@ -12,18 +12,18 @@
   <link rel="stylesheet" href="{% static 'css/ionicons.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/AdminLTE.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/blue.css' %}">
-<style type="text/css">
- body{
-        overflow-x:hidden;
-        overflow-y:hidden;
-     }
-</style>
+  <style type="text/css">
+   body{
+          overflow-x:hidden;
+          overflow-y:hidden;
+       }
+  </style>
   <script src="{% static 'js/html5shiv.min.js' %}"></script>
   <script src="{% static 'js/respond.min.js' %}"></script>
   <!-- Google Font -->
   <link rel="stylesheet" href="{% static 'fonts/googleapis.css' %}">
 </head>
-<body class="hold-transition login-page">
+<body class="hold-transition login-page" style="margin: 0;">
 <div class="login-box">
   <div class="login-logo">
     <a href="./index.html"><b>dev_task</b><h4>计划任务管理平台</h4></a>
@@ -32,15 +32,16 @@
   <div class="login-box-body">
     <p class="login-box-msg">Sign in to start your session</p>
 
-    <form action="./" method="post">{% csrf_token %}
+    <form action="" method="post">{% csrf_token %}
+    <input name="next" type="hidden" value="{{ next }}"/>
       <div class="form-group has-feedback">
           <div class="control {% if login_form.errors.username %}errorput{% endif %}">
-            <input type="text" class="form-control" placeholder="Username" name="username">
+            <input type="text" class="form-control" placeholder="Username" name="username" required>
             <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
           </div>
       </div>
       <div class="form-group has-feedback">
-          <input type="password" class="form-control" placeholder="Password" name="password">
+          <input type="password" class="form-control" placeholder="Password" name="password" required>
           <span class="glyphicon glyphicon-lock form-control-feedback"></span>
           <div class="error btns login-form-tips">{% for key,error in login_form.errors.items %}{{ key }}:{{ error }}{% endfor %}{{ msq }}</div>
       </div>

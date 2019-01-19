@@ -1,7 +1,4 @@
 {% extends "base.html" %}
-{% block crontab_list %}
-    active
-{% endblock %}
 {% block content %}
     <div class="row">
         <div class="col-md-12">
@@ -10,13 +7,12 @@
                 {% csrf_token %}
                 <div class="box box-info">
                     <div class="box-header with-border">
-                        <h3 class="box-title">Crontab列表</h3>
+                        <h3 class="box-title">crontab列表</h3>
                     </div>
                     <div class="box-body">
                         <div style="padding-left: 0;bottom: 5px;" class="col-sm-12">
                             <div class="btn-group">
-                                <button id="btn_add" type="button" class="btn btn-default" onclick="window.location.href='{% url 'job_crontab_add' %}'">
-                                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+                                <button id="btn_add" type="button" class="btn btn-success" onclick="window.location.href='{% url 'job_crontab_add' %}'">添加crontad
                                 </button>
                             </div>
                         </div>
@@ -62,17 +58,6 @@
 {% endblock %}
 {% block scripts-files %}
 <script>
-function checkAll(sender, checkClass) {
-    var checkItems = document.getElementsByTagName('input');
-    for (var i = 0; i < checkItems.length; i++) {
-        var checkItem = checkItems[i];
-        if (checkItem.type === 'checkbox' && checkItem.className === 'item1') {
-            checkItem.checked = sender.checked;
-        }
-    }
-}
-</script>
-<script>
   $(function () {
     $('#crontab_table').DataTable({
       "paging": true,
@@ -83,13 +68,6 @@ function checkAll(sender, checkClass) {
       "autoWidth": true
     });
   });
-</script>
-<script>
-function checkSubmit() {
-    if (!confirm("确定删除？")) {
-        window.event.returnValue = false;
-    }
-}
 </script>
 <script>
 function crontab_edit(n){

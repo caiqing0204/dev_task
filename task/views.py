@@ -1,55 +1,85 @@
 # -*- coding:utf-8 -*-
 
 from django_celery_beat.models import IntervalSchedule, CrontabSchedule, PeriodicTask
-from dev_task.celery import rabbitmq_exchange, rabbitmq_routing_key, rabbitmq_queue
+from dev_task.celery import (rabbitmq_exchange, rabbitmq_routing_key, rabbitmq_queue,
+                             rabbitmq_host, rabbitmq_password, rabbitmq_user,rabbitmq_vhost)
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.auth.decorators import login_required
 from django.db.models.signals import pre_save, pre_delete
 from django_celery_results.models import TaskResult
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
-from django.shortcuts import HttpResponseRedirect
-from django.shortcuts import render as my_render
-from dev_task.settings import default_email_users
-from django.core.urlresolvers import reverse
-from django.views.generic.base import View
-from datetime import datetime
+from django.contrib.messages.views import SuccessMessageMixin
+from django.contrib.auth.mixins import AccessMixin
 from django.contrib import auth
+from django.shortcuts import HttpResponseRedirect, HttpResponse
+from django.shortcuts import render as my_render
+from django.urls import reverse, reverse_lazy
+from django.views.decorators.debug import sensitive_post_parameters
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
+from django.views.generic import TemplateView, ListView, CreateView, UpdateView
+from django.views.generic.edit import FormView
+from django.views.generic.base import View
+from django.utils.decorators import method_decorator
+from django.utils.translation import ugettext as _
+from dev_task.settings import default_email_users
+from datetime import datetime
 from celery import current_app
 from models import TimedTask
 from forms import LoginForm
+from supply.rabbitmq_api import MQManage
 import json
+import urllib, urllib2, base64
 
 
-class LoginRequiredMixin(object):
-    @classmethod
-    def as_view(cls, **initkwargs):
-        view = super(LoginRequiredMixin, cls).as_view(**initkwargs)
-        return login_required(view, login_url='/login/')
+class LoginRequiredMixin(AccessMixin):
+
+    @method_decorator(login_required(redirect_field_name='next', login_url='/login/'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(LoginRequiredMixin, self).dispatch(request, *args, **kwargs)
 
 
-class LoginView(View):
-    def get(self, request):
+@method_decorator(sensitive_post_parameters(), name='dispatch')
+@method_decorator(csrf_protect, name='dispatch')
+@method_decorator(never_cache, name='dispatch')
+class LoginView(FormView):
+    template_name = 'login.html'
+    form_class = LoginForm
+    redirect_field_name = 'next'
+
+    def get_context_data(self, **kwargs):
+        kwargs = super(LoginView, self).get_context_data(**kwargs)
+        kwargs.update({
+            'next': self.request.GET.get('next', '')
+        })
+        return kwargs
+
+    def get(self, request, *args, **kwargs):
         if request.user.is_authenticated():
             return HttpResponseRedirect(reverse('index'))
         else:
-            return my_render(request, "login.html", {})
+            return super(LoginView, self).get(request, *args, **kwargs)
 
-    def post(self, request):
-        login_form = LoginForm(request.POST)
+    def post(self, request, *args, **kwargs):
+        login_form = self.get_form()
         if login_form.is_valid():
             user_name = login_form.cleaned_data['username']
             pass_word = login_form.cleaned_data['password']
+            next = request.POST.get('next', '')
             user = authenticate(username=user_name, password=pass_word)
             if user is not None:
                 if user.is_active:
                     login(request, user)
-                    return HttpResponseRedirect(reverse('index'))
+                    if next:
+                        return HttpResponseRedirect(next)
+                    else:
+                        return HttpResponseRedirect(reverse('index'))
                 else:
-                    return my_render(request, "login.html", {"msq": u"用户未激活，请联系管理！"})
+                    return my_render(request, "login.html", {"msq": _(u"用户未激活，请联系管理！")})
             else:
-                return my_render(request, "login.html", {"msq": u"用户验证失败，请联系管理员！"})
+                return my_render(request, "login.html", {"msq": _(u"用户验证失败，请联系管理员！")})
         else:
-            return my_render(request, "login.html", {"msq": u"用户验证失败，请联系管理员！", "login_form": login_form})
+            return my_render(request, "login.html", {"msq": _(u"用户验证失败，请联系管理员！"), "login_form": login_form})
 
 
 class LogoutView(View):
@@ -58,63 +88,86 @@ class LogoutView(View):
         return HttpResponseRedirect("/login/")
 
 
-# 仪表盘
+# dashboard
 class Dashboard(LoginRequiredMixin, View):
     def get(self, request):
-        # host_num = AssetInfo.objects.count()
-        # hostgroup_num = AssetGroup.objects.count()
-        # remoteuser_num = RemoteUser.objects.count()
-        # user_num = UserProfile.objects.count()
-        return my_render(request, "index.html")
+        return my_render(request, "index.html", locals())
+
+
+# api celery worker
+class CeleryWorker(LoginRequiredMixin, View):
+    def get(self, request):
+        requests = urllib2.Request('http://%s:5555/dashboard?json=1' % rabbitmq_host)
+        response = urllib2.urlopen(requests).read()
+        return HttpResponse(response)
+
+
+# api rabbitmq
+class Rabbitmq(LoginRequiredMixin, View):
+    def get(self, request):
+        mq = MQManage()
+        mq.create_connection(rabbitmq_host, rabbitmq_user, rabbitmq_password)
+        queuelist = json.dumps({"data": [x for x in json.loads(mq.list_queues()) if not x["name"].startswith('celery')]})
+        return HttpResponse(queuelist)
 
 
 # job list
-class job_list(LoginRequiredMixin, View):
-    def get(self, request):
-        jobs_info = TimedTask.objects.all()
-        return my_render(request, "task/job_list.html", locals())
+class JobList(LoginRequiredMixin, ListView):
+    model = TimedTask
+    template_name = "task/job_list.html"
+    context_object_name = "jobs_info"
 
 
 # job add
-class job_add(LoginRequiredMixin, View):
+class JobAdd(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = TimedTask
+    fields = '__all__'
+    template_name = "task/job_add.html"
     celery_app = current_app
+    celery_app.loader.import_default_modules()
+    interval_info = IntervalSchedule.objects.all()
+    crontab_info = CrontabSchedule.objects.all()
 
-    def get(self, request):
-        interval_info = IntervalSchedule.objects.all()
-        crontab_info = CrontabSchedule.objects.all()
-        default_email_user = default_email_users
-        _ = self.celery_app.loader.import_default_modules()
-        tasks = list(sorted(name for name in self.celery_app.tasks if not name.startswith('celery.')))
-        return my_render(request, "task/job_add.html", locals())
+    def get_context_data(self, **kwargs):
+        context = {
+            "interval_info": IntervalSchedule.objects.all(),
+            "crontab_info": CrontabSchedule.objects.all(),
+            "tasks": list(sorted(name for name in self.celery_app.tasks if not name.startswith('celery.'))),
+            "default_email_user": default_email_users
+        }
+        kwargs.update(context)
+        return super(JobAdd, self).get_context_data(**kwargs)
 
-    def post(self, request):
-        enabled_value = str(request.POST.get("enabled")) == str(True)
-        is_send_email_value = str(request.POST.get("is_send_email")) == str(True)
+    def post(self, request, *args, **kwargs):
+        post_data = request.POST
+        enabled_value = str(post_data.get("enabled")) == str(True)
+        is_send_email_value = str(post_data.get("is_send_email")) == str(True)
+
         job_data = {
-            "nice_name": request.POST.get("nice_name", ''),
-            "host": request.POST.get("host", ''),
-            "name": request.POST.get("name", ''),
-            "task": request.POST.get("regtask", ''),
-            "interval_id": request.POST.get("interval", ''),
-            "crontab_id": request.POST.get("crontab", ''),
-            "args": request.POST.get("args", ''),
-            "kwargs": request.POST.get("kwargs", ''),
+            "nice_name": post_data.get("nice_name", ''),
+            "host": post_data.get("host", ''),
+            "name": post_data.get("name", ''),
+            "task": post_data.get("regtask", ''),
+            "interval_id": post_data.get("interval", ''),
+            "crontab_id": post_data.get("crontab", ''),
+            "args": post_data.get("args", ''),
+            "kwargs": post_data.get("kwargs", ''),
             "queue": str(rabbitmq_queue),
             "exchange": rabbitmq_exchange,
             "routing_key": str(rabbitmq_routing_key),
-            # "expires": request.POST.get("expires") if request.POST.get("expires") else None,
             "expires": None,
             "enabled": enabled_value,
             "run_status": True if enabled_value else False,
-            "description": request.POST.get("description", ''),
-            "email": request.POST.get("email"),
+            "description": post_data.get("description", ''),
+            "email": post_data.get("email"),
             "is_send_email": is_send_email_value
         }
+        print job_data
         if job_data['interval_id'] and job_data['crontab_id']:
             error = u"you can only choices one of interval or crontab!"
-            interval_info = IntervalSchedule.objects.all()
-            crontab_info = CrontabSchedule.objects.all()
-            _ = self.celery_app.loader.import_default_modules()
+            interval_info = self.interval_info
+            crontab_info = self.crontab_info
+            self.celery_app.loader.import_default_modules()
             tasks = list(sorted(name for name in self.celery_app.tasks if not name.startswith('celery.')))
             return my_render(request, "task/job_add.html", locals())
         value = job_data["kwargs"]
@@ -122,9 +175,9 @@ class job_add(LoginRequiredMixin, View):
             json.loads(value)
         except ValueError as exc:
             error = u"Unable to parse JSON: %s" % exc
-            interval_info = IntervalSchedule.objects.all()
-            crontab_info = CrontabSchedule.objects.all()
-            _ = self.celery_app.loader.import_default_modules()
+            interval_info = self.interval_info
+            crontab_info = self.crontab_info
+            self.celery_app.loader.import_default_modules()
             tasks = list(sorted(name for name in self.celery_app.tasks if not name.startswith('celery.')))
             return my_render(request, "task/job_add.html", locals())
         if job_data['args']:
@@ -132,9 +185,9 @@ class job_add(LoginRequiredMixin, View):
                 json.loads(job_data['args'])
             except Exception as exc:
                 error = u"Unable to parse JSON: %s" % exc
-                interval_info = IntervalSchedule.objects.all()
-                crontab_info = CrontabSchedule.objects.all()
-                _ = self.celery_app.loader.import_default_modules()
+                interval_info = self.interval_info
+                crontab_info = self.crontab_info
+                self.celery_app.loader.import_default_modules()
                 tasks = list(sorted(name for name in self.celery_app.tasks if not name.startswith('celery.')))
         try:
             pre_save.send(sender=PeriodicTask, instance=TimedTask)
@@ -142,53 +195,66 @@ class job_add(LoginRequiredMixin, View):
             msg = u"添加任务成功!"
         except Exception as e:
             error = u"添加任务失败!,{0}".format(e)
-        interval_info = IntervalSchedule.objects.all()
-        crontab_info = CrontabSchedule.objects.all()
-        _ = self.celery_app.loader.import_default_modules()
+        interval_info = self.interval_info
+        crontab_info = self.crontab_info
+        self.celery_app.loader.import_default_modules()
         tasks = list(sorted(name for name in self.celery_app.tasks if not name.startswith('celery.')))
         return my_render(request, "task/job_add.html", locals())
 
 
 # job edit
-class job_edit(LoginRequiredMixin, View):
+class JobEdit(LoginRequiredMixin, UpdateView):
+    model = TimedTask
+    pk_url_kwarg = 'id'
+    context_object_name = 'job_info'
+    template_name = 'task/job_edit.html'
+    fields = '__all__'
     celery_app = current_app
+    celery_app.loader.import_default_modules()
+    interval_info = IntervalSchedule.objects.all()
+    crontab_info = CrontabSchedule.objects.all()
 
-    def get(self, request, id):
-        status = 0
-        job_info = TimedTask.objects.get(pk=id)
-        interval_info = IntervalSchedule.objects.all()
-        crontab_info = CrontabSchedule.objects.all()
-        _ = self.celery_app.loader.import_default_modules()
-        tasks = list(sorted(name for name in self.celery_app.tasks if not name.startswith('celery.')))
-        return my_render(request, "task/job_edit.html", locals())
+    def get_context_data(self, **kwargs):
+        kwargs = super(JobEdit, self).get_context_data(**kwargs)
+        kwargs.update({
+            "interval_info": self.interval_info,
+            "crontab_info": self.crontab_info,
+            "tasks": list(sorted(name for name in self.celery_app.tasks if not name.startswith('celery.'))),
+            "status": 0
+        })
+        return kwargs
 
-    def post(self, request, id):
-        enabled_value = str(request.POST.get("enabled")) == str(True)
-        is_send_email_value = str(request.POST.get("is_send_email")) == str(True)
+    def get_queryset(self):
+        qs = super(JobEdit, self).get_queryset()
+        return qs.filter(pk=self.kwargs.get(self.pk_url_kwarg))
+
+    def post(self, request, *args, **kwargs):
+        post_data = request.POST
+        enabled_value = str(post_data.get("enabled")) == str(True)
+        is_send_email_value = str(post_data.get("is_send_email")) == str(True)
         job_data = {
-            "nice_name": request.POST.get("nice_name", ''),
-            "host": request.POST.get("host", ''),
-            "name": request.POST.get("name", ''),
-            "interval_id": request.POST.get("interval", ''),
-            "crontab_id": request.POST.get("crontab", ''),
-            "args": request.POST.get("args", ''),
-            "kwargs": request.POST.get("kwargs", ''),
-            "queue": request.POST.get("queue", ''),
+            "nice_name": post_data.get("nice_name", ''),
+            "host": post_data.get("host", ''),
+            "name": post_data.get("name", ''),
+            "interval_id": post_data.get("interval", ''),
+            "crontab_id": post_data.get("crontab", ''),
+            "args": post_data.get("args", ''),
+            "kwargs": post_data.get("kwargs", ''),
+            "queue": post_data.get("queue", ''),
             "enabled": enabled_value,
             "run_status": True if enabled_value else False,
-            "exchange": request.POST.get("exchange", ''),
-            "routing_key": request.POST.get("routing_key", ''),
-            # "expires": request.POST.get("expires") if request.POST.get("expires") else None,
+            "exchange": post_data.get("exchange", ''),
+            "routing_key": post_data.get("routing_key", ''),
             "expires": None,
-            "description": request.POST.get("description", ''),
+            "description": post_data.get("description", ''),
             "date_changed": datetime.now(),
-            "email": request.POST.get("email"),
+            "email": post_data.get("email"),
             "is_send_email": is_send_email_value
         }
         if job_data['interval_id'] and job_data['crontab_id']:
             status = 2
             return my_render(request, "task/job_edit.html", locals())
-        task_value = request.POST.get("regtask")
+        task_value = post_data.get("regtask")
         if task_value:
             job_data["task"] = task_value
         kwargs_vaule = job_data["kwargs"]
@@ -206,7 +272,7 @@ class job_edit(LoginRequiredMixin, View):
                 return my_render(request, "task/job_edit.html", locals())
         try:
             pre_save.send(sender=PeriodicTask, instance=TimedTask)
-            TimedTask.objects.filter(id=id).update(**job_data)
+            self.get_queryset().update(**job_data)
             status = 1
         except Exception as e:
             print e
@@ -215,7 +281,7 @@ class job_edit(LoginRequiredMixin, View):
 
 
 # job del
-class job_del(LoginRequiredMixin, View):
+class JobDel(LoginRequiredMixin, View):
 
     def post(self, request):
         pre_delete.send(sender=PeriodicTask, instance=TimedTask)
@@ -227,33 +293,24 @@ class job_del(LoginRequiredMixin, View):
 
 
 # job interval list
-class job_interval_list(LoginRequiredMixin, View):
-    def get(self, request):
-        interval_info = IntervalSchedule.objects.all()
-        return my_render(request, "task/interval_list.html", locals())
+class JobIntervalList(LoginRequiredMixin, ListView):
+    model = IntervalSchedule
+    context_object_name = 'interval_info'
+    template_name = "task/interval_list.html"
 
 
 # job interval add
-class job_interval_add(LoginRequiredMixin, View):
-    def get(self, request):
-        return my_render(request, "task/interval_add.html")
-
-    def post(self, request):
-        interval_data = {
-            "every": request.POST.get("every", ''),
-            "period": str(request.POST.get("period", ''))
-        }
-        try:
-            IntervalSchedule.objects.create(**interval_data)
-            msg = u"添加interval成功!"
-
-        except:
-            error = u"添加interval失败!"
-        return my_render(request, "task/interval_add.html", locals())
+class JobIntervalAdd(LoginRequiredMixin, SuccessMessageMixin, CreateView):
+    model = IntervalSchedule
+    template_name = 'task/interval_add.html'
+    fields = '__all__'
+    success_url = reverse_lazy('job_interval_add')
+    success_message = _("<b>interval</b> was created successfully")
 
 
 # job interval del
-class job_interval_del(LoginRequiredMixin, View):
+class JobIntervalDel(LoginRequiredMixin, View):
+
     def post(self, request):
         pre_delete.send(sender=PeriodicTask, instance=TimedTask)
         intervals = request.POST.getlist("interval_check", [])
@@ -264,20 +321,33 @@ class job_interval_del(LoginRequiredMixin, View):
 
 
 # job interval edit
-class job_interval_edit(LoginRequiredMixin, View):
-    def get(self, request, id):
-        status = 0
-        interval_info = IntervalSchedule.objects.get(pk=id)
-        return my_render(request, "task/interval_edit.html", locals())
+class JobIntervalEdit(LoginRequiredMixin, UpdateView):
+    model = IntervalSchedule
+    fields = '__all__'
+    template_name = 'task/interval_edit.html'
+    pk_url_kwarg = 'id'
+    context_object_name = 'interval_info'
 
-    def post(self, request, id):
+    def get_context_data(self, **kwargs):
+        kwargs = super(JobIntervalEdit, self).get_context_data(**kwargs)
+        kwargs.update({
+            "status": 0
+        })
+        return kwargs
+
+    def get_queryset(self):
+        qs = super(JobIntervalEdit, self).get_queryset()
+        return qs.filter(pk=self.kwargs.get(self.pk_url_kwarg))
+
+    def post(self, request, *args, **kwargs):
+        post_data = request.POST
         interval_data = {
-            "every": request.POST.get("every"),
-            "period": request.POST.get("period")
+            "every": post_data.get("every"),
+            "period": post_data.get("period")
         }
         try:
             pre_save.send(sender=PeriodicTask, instance=TimedTask)
-            IntervalSchedule.objects.filter(pk=id).update(**interval_data)
+            self.get_queryset().update(**interval_data)
             status = 1
         except:
             status = 2
@@ -285,14 +355,14 @@ class job_interval_edit(LoginRequiredMixin, View):
 
 
 # job crontab list
-class job_cronatb_list(LoginRequiredMixin, View):
-    def get(self, request):
-        crontab_info = CrontabSchedule.objects.all()
-        return my_render(request, "task/crontab_list.html", locals())
+class JobCronatbList(LoginRequiredMixin, ListView):
+    model = CrontabSchedule
+    template_name = 'task/crontab_list.html'
+    context_object_name = 'crontab_info'
 
 
 # job crontab add
-class job_crontab_add(LoginRequiredMixin, View):
+class JobCrontabAdd(LoginRequiredMixin, View):
     def get(self, request):
         return my_render(request, "task/crontab_add.html", locals())
 
@@ -313,7 +383,7 @@ class job_crontab_add(LoginRequiredMixin, View):
 
 
 # job crontab del
-class job_crontab_del(LoginRequiredMixin, View):
+class JobCrontabDel(LoginRequiredMixin, View):
     def post(self, request):
         pre_delete.send(sender=PeriodicTask, instance=TimedTask)
         crontabs = request.POST.getlist("crontab_check", [])
@@ -324,7 +394,7 @@ class job_crontab_del(LoginRequiredMixin, View):
 
 
 # job crontab edit
-class job_crontab_edit(LoginRequiredMixin, View):
+class JobCrontabEdit(LoginRequiredMixin, View):
     def get(self, request, id):
         status = 0
         crontab_info = CrontabSchedule.objects.get(pk=id)
@@ -348,14 +418,25 @@ class job_crontab_edit(LoginRequiredMixin, View):
 
 
 # job result list
-class job_result_list(LoginRequiredMixin, View):
+class JobResultList(LoginRequiredMixin, View):
+
     def get(self, request):
         result_dict = {}
+        left = []
+        right = []
+        first = False
+        last = False
+        left_has_more = False
+        right_has_more = False
+        is_paginated = True
+
         host_ip = request.GET.get('host', '')
         status = request.GET.get('status', '')
         kwargs = request.GET.get('kwargs', '')
+        page = request.GET.get('page', 1)
         timedtask_obj = TimedTask.objects.all()
         result_list = TaskResult.objects.all()
+
         if host_ip and kwargs:
             result_dict['task_kwargs__contains'] = host_ip and kwargs
         elif host_ip:
@@ -367,14 +448,48 @@ class job_result_list(LoginRequiredMixin, View):
         if result_dict:
             result_list = TaskResult.objects.filter(**result_dict)
         total_result = result_list.count()
+        page_number = int(page)
         paginator = Paginator(result_list, 10)
-        page = request.GET.get('page', 1)
-        currentPage = int(page)
+        # 获得分页后的总页数
+        total_pages = paginator.num_pages
+        page_range = list(paginator.page_range)
+        currentPage = int(page_number)
+
 
         try:
             result_list = paginator.page(page)
         except PageNotAnInteger:
             result_list = paginator.page(1)
         except EmptyPage:
-            result_list = paginator.page(paginator.num_pages)
+            result_list = paginator.page(total_pages)
+
+        if result_list:
+            if page_number == 1:
+                right = page_range[page_number:page_number + 2]
+                if right[-1] < total_pages - 1:
+                    right_has_more = True
+
+                if right[-1] < total_pages:
+                    last = True
+
+            elif page_number == total_pages:
+                left = page_range[(page_number - 3) if (page_number - 3) > 0 else 0:page_number - 1]
+                if left[0] > 2:
+                    left_has_more = True
+                if left[0] > 1:
+                    first = True
+            else:
+                left = page_range[(page_number - 3) if (page_number - 3) > 0 else 0:page_number - 1]
+                right = page_range[page_number:page_number + 2]
+                if right[-1] < total_pages - 1:
+                    right_has_more = True
+                if right[-1] < total_pages:
+                    last = True
+                if left[0] > 2:
+                    left_has_more = True
+                if left[0] > 1:
+                    first = True
+        else:
+            is_paginated = False
+
         return my_render(request, "task/result_list.html", locals())

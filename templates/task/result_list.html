@@ -1,9 +1,6 @@
 {% extends "base.html" %}
 {% load mytags %}
 {% load staticfiles %}
-{% block result_list %}
-    active
-{% endblock %}
 {% block content %}
     <div class="row">
         <div class="col-md-12">
@@ -57,7 +54,7 @@
                           <thead>
                             <tr>
                                 <th>任务类型</th>
-                                <th>任务状态</th>
+                                <th style="white-space:nowrap">任务状态</th>
                                 <th>任务指令</th>
                                 <th>完成时间</th>
                                 <th>任务结果</th>
@@ -68,8 +65,12 @@
                             {% for result in result_list %}
                                 <tr class="even gradeA">
                                     <td>{{ result.task_name }}</td>
-                                    <td>{{ result.status }}</td>
-                                    <td>{{ result.task_kwargs|cmd2str }}</td>
+                                    {% ifequal result.status 'SUCCESS' %}
+                                        <td><span class="label label-success">{{ result.status }}</span></td>
+                                    {% else %}
+                                        <td><span class="label label-danger">{{ result.status }}</span></td>
+                                    {% endifequal %}
+                                    <td style="white-space:nowrap">{{ result.task_kwargs|cmd2str }}</td>
                                     <td>{{ result.date_done|date:"Y-m-d H:i:s" }}</td>
                                     <td>{{ result.result }}</td>
                                     {% if  result.traceback %}
@@ -92,13 +93,32 @@
                                     {% else %}
                                         <li class="previous disabled"><a href="#">Previous</a></li>
                                     {% endif %}
-                                    {% for num in paginator.page_range %}
-                                        {% if num == currentPage %}
-                                            <li class="item active"><a class="page" href="?page={{ num }}">{{ num }}</a></li>
-                                        {% else %}
-                                            <li class="item"><a class="page" href="?page={{ num }}">{{ num }}</a></li>
+                                    {% if is_paginated %}
+                                        {% if first %}
+                                            <li class="item"><a class="page" href="{% url 'job_result_list' %}?page=1">1</a></li>
                                         {% endif %}
-                                    {% endfor %}
+                                        {% if left %}
+                                            {% if left_has_more %}
+                                                <li class="item"><span>...</span></li>
+                                            {% endif %}
+                                            {% for i in left %}
+                                                <li class="item"><a class="page" href="{% url 'job_result_list' %}?page={{ i }}">{{ i }}</a></li>
+                                            {% endfor %}
+                                        {% endif %}
+                                        <li class="item active"><a class="page" href="?page={{ currentPage }}">{{ currentPage }}</a></li>
+
+                                        {% if right %}
+                                            {% for i in right %}
+                                                <li class="item"><a class="page" href="{% url 'job_result_list' %}?page={{ i }}">{{ i }}</a></li>
+                                            {% endfor %}
+                                            {% if right_has_more %}
+                                                <li class="item"><span>...</span></li>
+                                            {% endif %}
+                                        {% endif %}
+                                        {% if last %}
+                                            <li class="item"><a class="page" href="{% url 'job_result_list' %}?page={{ paginator.num_pages }}">{{ paginator.num_pages }}</a></li>
+                                        {% endif %}
+                                    {% endif %}
                                     {% if result_list.has_next %}
                                         <li class="next"><a href="{% url 'job_result_list' %}?page={{ result_list.next_page_number }}">Next</a></li>
                                     {% else %}
@@ -124,7 +144,7 @@
                 var searchStr = location.search;
                 var old_href = $(this).attr('href').replace('?', '');
                 var searchArray = searchStr.split('&');
-                if (searchStr == ''){
+                if (searchStr === ''){
                     searchStr = '?page=1'
                 }
                 if (searchStr.indexOf('page')>=0){

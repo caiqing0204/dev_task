@@ -42,8 +42,6 @@
                                         var period_data = {Days: "days",Hours: "hours",Minutes: "minutes",Seconds: "seconds",Microseconds: "microseconds"};
                                         var period_value = '{{ interval_info.period }}';
                                         $.each(period_data, function (k,v) {
-                                            console.log(period_value);
-                                            console.log(v);
                                             if ( period_value == v) {
 
                                                 document.write("<option value="+v+" selected>"+k+"</option>")
