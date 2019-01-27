@@ -41,7 +41,11 @@ def kwargs2str(obj):
     list_1 = []
     _list = obj.values_list("kwargs", flat=True)
     for v in list(list(_list)):
-        list_1.append(v['cmd'])
+        if isinstance(v, unicode):
+            _v = json.loads(v)
+            list_1.append(_v['cmd'])
+        else:
+            list_1.append(v['cmd'])
     return list(set(list_1))
 
 

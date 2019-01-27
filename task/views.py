@@ -463,7 +463,7 @@ class JobResultList(LoginRequiredMixin, View):
         except EmptyPage:
             result_list = paginator.page(total_pages)
 
-        if result_list:
+        if result_list and total_pages > 1:
             if page_number == 1:
                 right = page_range[page_number:page_number + 2]
                 if right[-1] < total_pages - 1:
