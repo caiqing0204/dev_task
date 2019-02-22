@@ -23,8 +23,9 @@ yum install -y python python-dev python-devel   python-pip  gcc  msgpack-python 
 ```
 ## server端和client节点都需要安装的模块，并且git clone代码到server和client上
 ```
-pip install -r requirements
+cd /opt
 git clone https://github.com/caiqing0204/dev_task.git
+pip install -r requirements
 ```
 
 ## server端安装
@@ -35,6 +36,8 @@ rabbitmqctl add_user rabbitmqadmin 1234qwer
 rabbitmqctl set_user_tags rabbitmqadmin administrator
 rabbitmqctl add_vhost dev_task
 rabbitmqctl set_permissions -p dev_task rabbitmqadmin ".*" ".*" ".*"
+# 安装rabbitmq的管理页面
+rabbitmq-plugins enable rabbitmq_management
 ```
 
 ### 安装uwsgi
