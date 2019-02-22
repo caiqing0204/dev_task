@@ -49,11 +49,11 @@ pip install uwsgi==2.0.17.1
 
 ### 安装django-celery-result和项目
 ```
+cd /opt/dev_task/supply/django-celery-results-master/
+python setup.py install
 cd /opt/dev_task/
 python manage.py makemigrations
 python manage.py migrate
-cd /opt/dev_task/supply/django-celery-results-master/
-python setup.py install
 ```
 ### 创建登录用户
 ```
