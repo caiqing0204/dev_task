@@ -97,7 +97,7 @@ class Dashboard(LoginRequiredMixin, View):
 # api celery worker
 class CeleryWorker(LoginRequiredMixin, View):
     def get(self, request):
-        requests = urllib2.Request('http://%s:5555/dashboard?json=1' % rabbitmq_host)
+        requests = urllib2.Request('http://127.0.0.1:5555/dashboard?json=1')
         response = urllib2.urlopen(requests).read()
         return HttpResponse(response)
 
