@@ -23,7 +23,6 @@ python manage.py migrate
 python createsuperuser.py
 
 \cp server_supervisord.conf /etc/supervisord.conf
-supervisord -c /etc/supervisord.conf
 chmod 777 /opt/dev_task/static/ -R
 cp nginx.conf /etc/nginx/
 chmod +x /opt/dev_task/init.sh
