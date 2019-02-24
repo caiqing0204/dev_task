@@ -16,7 +16,7 @@ service iptables stop<br>
 安装mysql5.6,rabbitmq,并且启动服务<br>
 安装supervisor，必须是3.0以上的版本，centos6.5yum安装默认是2.+的版本，这里需要手动安装。<br>
 
-## 以Docker方式安装
+## 以Docker方式运行
 
 ```
 MYSQL_HOST:mysql主机ip
