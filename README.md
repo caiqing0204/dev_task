@@ -18,6 +18,12 @@ service iptables stop<br>
 
 ## 以Docker方式运行
 
+> 建议大家使用docker方式运行项目，使用docker方式运行项目，需要注意的是
+
+> mysql和rabbitmq都是安装在宿主机上的，也就是说，容器中并没有包含mysql和rabbitmq的服务
+
+> 这也是提高了数据安全性和扩展性，所以安装好了mysql和rabbitmq服务以后，需要对容器的访问授权，然后利用启动容器的方式，把相关信息带入容器内部。
+
 ```
 MYSQL_HOST:mysql主机ip
 MYSQL_PORT:mysql端口号
