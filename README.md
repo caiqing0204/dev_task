@@ -39,7 +39,23 @@ DEFAULT_EM_ADDR:默认收件人地址，多个地址以英文逗号区分
 ```
 
 ```
-docker run -itd -p 80:8070 -e "MYSQL_HOST=192.168.100.10" -e "MYSQL_PORT=3306" -e "MYSQL_USER=root" -e "MYSQL_PASS=123456" -e "MYSQL_DB=dev_task" -e "RA_HOST=192.168.100.10" -e "LO_HOST=192.168.100.10" -e "RA_Q=192.168.100.10" -e "RA_ROUTING_KEY=192.168.100.10" -e "EM_HOST=smtp.exmail.qq.com" -e "EM_PORT=25" -e "EM_SEND_USER=example@163.com" -e "EM_PASS=123456" -e "DEFAULT_EM_ADDR=user1@163.com,user2@163.com,user3@163.com" --name dev_task caiqing0204/dev_task
+docker run -itd -p 80:8070
+ -e "MYSQL_HOST=192.168.100.10"
+ -e "MYSQL_PORT=3306"
+ -e "MYSQL_USER=root"
+ -e "MYSQL_PASS=123456"
+ -e "MYSQL_DB=dev_task"
+ -e "RA_HOST=192.168.100.10"
+ -e "LO_HOST=192.168.100.10"
+ -e "RA_Q=192.168.100.10"
+ -e "RA_ROUTING_KEY=192.168.100.10"
+ -e "EM_HOST=smtp.exmail.qq.com"
+ -e "EM_PORT=25"
+ -e "EM_SEND_USER=example@163.com"
+ -e "EM_PASS=123456"
+ -e "DEFAULT_EM_ADDR=user1@163.com,user2@163.com,user3@163.com"
+ --name dev_task
+ caiqing0204/dev_task
 ```
 
 ## 安装文档
