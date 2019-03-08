@@ -16,6 +16,10 @@ service iptables stop<br>
 安装mysql5.6,rabbitmq,并且启动服务<br>
 安装supervisor，必须是3.0以上的版本，centos6.5yum安装默认是2.+的版本，这里需要手动安装。<br>
 
+## dev_task内部架构图
+
+![dev_task内部架构图](./screenshots/dev_task.png  "screenshots")
+
 ## 以Docker方式运行
 
 > 建议大家使用docker方式运行项目，使用docker方式运行项目，需要注意的是
